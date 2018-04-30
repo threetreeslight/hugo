@@ -838,21 +838,6 @@ func (c *commandeer) newWatcher(dirList ...string) (*watcher.Batcher, error) {
 						continue
 					}
 
-					// Write and rename operations are often followed by CHMOD.
-					// There may be valid use cases for rebuilding the site on CHMOD,
-					// but that will require more complex logic than this simple conditional.
-					// On OS X this seems to be related to Spotlight, see:
-					// https://github.com/go-fsnotify/fsnotify/issues/15
-					// A workaround is to put your site(s) on the Spotlight exception list,
-					// but that may be a little mysterious for most end users.
-					// So, for now, we skip reload on CHMOD.
-					// We do have to check for WRITE though. On slower laptops a Chmod
-					// could be aggregated with other important events, and we still want
-					// to rebuild on those
-					if ev.Op&(fsnotify.Chmod|fsnotify.Write|fsnotify.Create) == fsnotify.Chmod {
-						continue
-					}
-
 					walkAdder := func(path string, f os.FileInfo, err error) error {
 						if f.IsDir() {
 							c.Logger.FEEDBACK.Println("adding created directory to watchlist", path)
